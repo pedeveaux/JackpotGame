@@ -1,4 +1,4 @@
-from jackpot import roll_dice, poss_moves
+from jackpot import roll_dice, poss_moves, gen_ltr_images
 import pytest
 
 
@@ -13,3 +13,7 @@ def test_roll_dice():
 )
 def test_poss_moves(input, expected):
     assert poss_moves(input) == expected
+
+
+def test_gen_letter_images():
+    assert len(gen_ltr_images()) == 9
