@@ -10,9 +10,14 @@ red3 = (175, 0, 0)
 green1 = (0, 255, 0)
 green2 = (0, 200, 0)
 green3 = (0, 175, 0)
+blue1 = (0, 0, 255)
+blue2 = (0, 0, 200)
+blue3 = (0, 0, 175)
 
 red_colors = (red1, red2, red3)
 green_colors = (green1, green2, green3)
+blue_colors = (blue1, blue2, blue3)
+pg.font.init()
 FONT = pg.font.Font(None, 72)
 BW = 160
 BH = int(BW / 2)
@@ -49,7 +54,7 @@ def paddle_call():
 
 
 class Die(pg.sprite.Sprite):
-    def __init__(self, x, number, y=400, height=60, width=60):
+    def __init__(self, x, number, y=350, height=60, width=60):
         super().__init__()
 
         self.number = str(number)
@@ -149,10 +154,18 @@ class ControlButton(Button):
         self.image_hover.fill(colors[1])
         self.image_down.fill(colors[2])
 
+        image_center = self.image.get_rect().center
+        text_surf = font.render(text, True, text_color)
+        text_rect = text_surf.get_rect(center=image_center)
+
+        # Blit the text onto the images.
+        for image in (self.image_normal, self.image_hover, self.image_down):
+            image.blit(text_surf, text_rect)
+
 
 class Paddle(pg.sprite.Sprite):
     def __init__(
-        self, x, number, callback=paddle_call, y=100, font=FONT, height=100, width=50,
+        self, x, number, callback=paddle_call, y=55, font=FONT, height=100, width=50,
     ):
         super().__init__()
         paddle_dict = {
@@ -240,18 +253,21 @@ class Game:
             self.paddle8,
             self.paddle9,
         )
-        self.die1 = Die(x=350, number=2)
+        self.die1 = Die(x=175, number=2)
         self.die2 = Die(x=50, number=4)
 
         self.roll_button = ControlButton(
-            x=250, colors=green_colors, callback=self.roll_dice, text="Roll"
+            x=85, colors=green_colors, callback=self.roll_dice, text="Roll"
         )
 
         self.quit_button = ControlButton(
             x=650, colors=red_colors, callback=self.quit_game, text="Quit"
         )
+        self.reset_button = ControlButton(
+            x=850, colors=blue_colors, callback=self.reset_game, text="Reset"
+        )
 
-        self.all_buttons.add(self.roll_button, self.quit_button)
+        self.all_buttons.add(self.roll_button, self.quit_button, self.reset_button)
         self.all_dice.add(self.die1, self.die2)
 
     def get_legal_moves(self, roll):
@@ -300,6 +316,11 @@ class Game:
         d2 = randint(1, 6)
         self.die1.image = self.die1.die_images[str(d1)]
         self.die2.image = self.die2.die_images[str(d2)]
+
+    def reset_game(self):
+        for p in self.paddle_list:
+            p.state = True
+            p.image = p.num_image
 
 
 def poss_moves(roll):
