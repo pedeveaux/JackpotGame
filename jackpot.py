@@ -4,16 +4,16 @@ import pygame as pg
 pg.init()
 black = (0, 0, 0)
 white = (255, 255, 255)
-red = (255, 0, 0)
+red1 = (255, 0, 0)
 red2 = (200, 0, 0)
 red3 = (175, 0, 0)
-green = (0, 255, 0)
+green1 = (0, 255, 0)
 green2 = (0, 200, 0)
 green3 = (0, 175, 0)
 
-red_colors = (red, red2, red3)
-green_colors = (green, green2, green3)
-FONT = pg.font.SysFont('Comic Sans MS', 32)
+red_colors = (red1, red2, red3)
+green_colors = (green1, green2, green3)
+FONT = pg.font.Font(None, 72)
 BW = 160
 BH = int(BW / 2)
 
@@ -52,7 +52,10 @@ class Die(pg.sprite.Sprite):
     def __init__(self, x, number, y=400, height=60, width=60):
         super().__init__()
 
-    pass
+        self.number = str(number)
+        self.die_images = get_dice_images()
+        self.image = self.die_images[self.number]
+        self.rect = self.image.get_rect(topleft=(x, y))
 
     # def roll(self);
     #     pass
@@ -68,6 +71,7 @@ class Button(pg.sprite.Sprite):
         y,
         width,
         height,
+        callback,
         font,
         image_normal,
         image_hover,
@@ -91,6 +95,7 @@ class Button(pg.sprite.Sprite):
             image.blit(text_surf, text_rect)
 
         self.button_down = False
+        self.callback = callback
 
     def handle_event(self, event):
         if event.type == pg.MOUSEBUTTONDOWN:
@@ -116,21 +121,23 @@ class ControlButton(Button):
         self,
         x,
         colors,
+        callback,
         y=500,
         width=BW,
         height=BH,
         font=FONT,
+        text="",
         image_normal=pg.Surface((BH, BW)),
         image_hover=pg.Surface((BH, BW)),
         image_down=pg.Surface((BH, BW)),
-        text="",
-        text_color=(255, 255, 255),
+        text_color=white,
     ):
         super().__init__(
             x,
             y,
             width,
             height,
+            callback,
             font,
             image_normal,
             image_hover,
@@ -214,6 +221,7 @@ class Game:
         ]
         self.all_paddles = pg.sprite.Group()
         self.all_buttons = pg.sprite.Group()
+        self.all_dice = pg.sprite.Group()
         # num_images = gen_num_images()
         # ltr_imgs = gen_ltr_images()
 
@@ -232,14 +240,19 @@ class Game:
             self.paddle8,
             self.paddle9,
         )
-        self.die1 = 0
-        self.die1 = 0
+        self.die1 = Die(x=350, number=2)
+        self.die2 = Die(x=50, number=4)
 
-        self.roll_button = ControlButton(x=250, colors=green_colors, text="Roll")
+        self.roll_button = ControlButton(
+            x=250, colors=green_colors, callback=self.roll_dice, text="Roll"
+        )
 
-        self.quit_button = ControlButton(x=650, colors=red_colors, text="Quit")
+        self.quit_button = ControlButton(
+            x=650, colors=red_colors, callback=self.quit_game, text="Quit"
+        )
 
         self.all_buttons.add(self.roll_button, self.quit_button)
+        self.all_dice.add(self.die1, self.die2)
 
     def get_legal_moves(self, roll):
         moves = poss_moves(roll)
@@ -258,6 +271,7 @@ class Game:
 
     def run_logic(self):
         self.all_paddles.update(self.dt)
+        self.all_buttons.update(self.dt)
 
     def handle_events(self):
         for event in pg.event.get():
@@ -271,17 +285,21 @@ class Game:
     def draw(self):
         self.all_paddles.draw(self.screen)
         self.all_buttons.draw(self.screen)
+        self.all_dice.draw(self.screen)
         pg.display.flip()
 
+    def quit_game(self):
+        """Callback method to quit the game."""
+        self.done = True
 
-def roll_dice():
-    """This function simulates rolling two six sided dice
-    It returns a tuple of two ints """
+    def roll_dice(self):
+        """This function simulates rolling two six sided dice
+        It returns a tuple of two ints """
 
-    first_die = randint(1, 6)
-    second_die = randint(1, 6)
-
-    return (first_die, second_die)
+        d1 = randint(1, 6)
+        d2 = randint(1, 6)
+        self.die1.image = self.die1.die_images[str(d1)]
+        self.die2.image = self.die2.die_images[str(d2)]
 
 
 def poss_moves(roll):
@@ -319,4 +337,3 @@ if __name__ == "__main__":
     pg.init()
     Game(screen).run()
     pg.quit()
-
