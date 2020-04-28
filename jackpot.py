@@ -6,12 +6,27 @@ black = (0, 0, 0)
 white = (255, 255, 255)
 red = (255, 0, 0)
 red2 = (200, 0, 0)
+red3 = (175, 0, 0)
 green = (0, 255, 0)
 green2 = (0, 200, 0)
-FONT = pg.font.Font(None, 72)
+green3 = (0, 175, 0)
+
+red_colors = (red, red2, red3)
+green_colors = (green, green2, green3)
+FONT = pg.font.SysFont('Comic Sans MS', 32)
+BW = 160
+BH = int(BW / 2)
 
 screen = pg.display.set_mode([1048, 650])
 pg.display.set_caption("JackPot")
+
+
+def get_dice_images():
+    dice_dict = {}
+    numbers = ["1", "2", "3", "4", "5", "6"]
+    for n in numbers:
+        dice_dict[n] = pg.image.load(f"images/die{n}.png")
+    return dice_dict
 
 
 def gen_num_images():
@@ -31,6 +46,101 @@ def gen_ltr_images():
 
 def paddle_call():
     pass
+
+
+class Die(pg.sprite.Sprite):
+    def __init__(self, x, number, y=400, height=60, width=60):
+        super().__init__()
+
+    pass
+
+    # def roll(self);
+    #     pass
+
+    # def handle_event(self, event):
+    #     pass
+
+
+class Button(pg.sprite.Sprite):
+    def __init__(
+        self,
+        x,
+        y,
+        width,
+        height,
+        font,
+        image_normal,
+        image_hover,
+        image_down,
+        text="",
+        text_color=(0, 0, 0),
+    ):
+        super().__init__()
+        self.image_normal = pg.transform.scale(image_normal, (width, height))
+        self.image_hover = pg.transform.scale(image_hover, (width, height))
+        self.image_down = pg.transform.scale(image_down, (width, height))
+
+        self.image = self.image_normal
+        self.rect = self.image.get_rect(topleft=(x, y))
+
+        image_center = self.image.get_rect().center
+        text_surf = font.render(text, True, text_color)
+        text_rect = text_surf.get_rect(center=image_center)
+
+        for image in (self.image_normal, self.image_hover, self.image_down):
+            image.blit(text_surf, text_rect)
+
+        self.button_down = False
+
+    def handle_event(self, event):
+        if event.type == pg.MOUSEBUTTONDOWN:
+            if self.rect.collidepoint(event.pos):
+                self.image = self.image_down
+                self.button_down = True
+        elif event.type == pg.MOUSEBUTTONUP:
+            # If the rect collides with the mouse pos.
+            if self.rect.collidepoint(event.pos) and self.button_down:
+                self.callback()  # Call the function.
+                self.image = self.image_hover
+            self.button_down = False
+        elif event.type == pg.MOUSEMOTION:
+            collided = self.rect.collidepoint(event.pos)
+            if collided and not self.button_down:
+                self.image = self.image_hover
+            elif not collided:
+                self.image = self.image_normal
+
+
+class ControlButton(Button):
+    def __init__(
+        self,
+        x,
+        colors,
+        y=500,
+        width=BW,
+        height=BH,
+        font=FONT,
+        image_normal=pg.Surface((BH, BW)),
+        image_hover=pg.Surface((BH, BW)),
+        image_down=pg.Surface((BH, BW)),
+        text="",
+        text_color=(255, 255, 255),
+    ):
+        super().__init__(
+            x,
+            y,
+            width,
+            height,
+            font,
+            image_normal,
+            image_hover,
+            image_down,
+            text=text,
+            text_color=text_color,
+        )
+        self.image_normal.fill(colors[0])
+        self.image_hover.fill(colors[1])
+        self.image_down.fill(colors[2])
 
 
 class Paddle(pg.sprite.Sprite):
@@ -103,6 +213,7 @@ class Game:
             self.paddle9,
         ]
         self.all_paddles = pg.sprite.Group()
+        self.all_buttons = pg.sprite.Group()
         # num_images = gen_num_images()
         # ltr_imgs = gen_ltr_images()
 
@@ -121,6 +232,14 @@ class Game:
             self.paddle8,
             self.paddle9,
         )
+        self.die1 = 0
+        self.die1 = 0
+
+        self.roll_button = ControlButton(x=250, colors=green_colors, text="Roll")
+
+        self.quit_button = ControlButton(x=650, colors=red_colors, text="Quit")
+
+        self.all_buttons.add(self.roll_button, self.quit_button)
 
     def get_legal_moves(self, roll):
         moves = poss_moves(roll)
@@ -146,9 +265,12 @@ class Game:
                 self.done = True
             for paddle in self.all_paddles:
                 paddle.handle_event(event)
+            for button in self.all_buttons:
+                button.handle_event(event)
 
     def draw(self):
         self.all_paddles.draw(self.screen)
+        self.all_buttons.draw(self.screen)
         pg.display.flip()
 
 
@@ -193,71 +315,8 @@ def button(msg, x, y, w, h, ic, ac, gameDisplay, action=None, act_args=None):
     gameDisplay.blit(textSurf, textRect)
 
 
-class Button:
-    def __init__(self, position, size):
-        self._images = [
-            pg.Surface(size),
-            pg.Surface(size),
-        ]
-
-        self._images[0].fill(green)
-        self._images[1].fill(green2)
-
-        # get image size and position
-        self._rect = pg.Rect(position, size)
-
-        self._index = 0
-
-    def draw(self, screen):
-        # draw selected image
-        screen.blit(self._images[self._index], self._rect)
-
-    def event_handler(self, event):
-        # if some mouse button is clicked
-        if event.type == pg.MOUSEBUTTONDOWN:
-            # if it is the left button
-            if event.button == 1:
-                self._index = (self.index + 1) % 2
-
-
-class DiceButton(Button):
-    def __init__(self, position, size, msg, dice_images):
-
-        self._msg = msg
-        self._dice_images = dice_images
-
-        self._images = [
-            pg.Surface(size),
-            pg.Surface(size),
-        ]
-
-        self._images[0].fill(green)
-        self._images[1].fill(green2)
-
-        # get image size and position
-        self._rect = pg.Rect(position, size)
-
-        self._index = 0
-        mouse = pg.mouse.get_pos()
-
-        if self._rect.collidepoint(mouse):
-            self._index = 1
-        else:
-            self._index = 0
-
-    def event_handler(self, event, screen):
-        if event.type == pg.MOUSEBUTTONDOWN:
-            # if it is the left button
-            if event.button == 1:
-                if self._rect.collidepoint(event.pos):
-                    # self._index = (self._index + 1) % 2
-                    # roll = roll_dice()
-                    screen.blit(self._dice_images[3], (40, 200))
-                    # screen.blit(self._dice_images[roll[0]], (40, 200))
-                    # screen.blit(self._dice_images[roll[1]], (250, 200))
-
-
 if __name__ == "__main__":
     pg.init()
     Game(screen).run()
     pg.quit()
+
