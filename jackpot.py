@@ -53,10 +53,6 @@ def gen_ltr_images():
     return image_dict
 
 
-def paddle_call():
-    pass
-
-
 class Die(pg.sprite.Sprite):
     def __init__(self, x, number, y=350, height=60, width=60):
         super().__init__()
@@ -171,7 +167,7 @@ class ControlButton(Button):
 
 class Paddle(pg.sprite.Sprite):
     def __init__(
-        self, x, number, callback=paddle_call, y=55, font=FONT, height=100, width=50,
+        self, x, number, y=55, font=FONT, height=100, width=50,
     ):
         super().__init__()
         paddle_dict = {
@@ -210,11 +206,6 @@ class Paddle(pg.sprite.Sprite):
             if self.rect.collidepoint(event.pos):
                 if self.number in self.poss_moves:
                     self.flip()
-                else:
-                    self.ill_move()
-
-    def ill_move(self):
-        pass
 
 
 class Game:
@@ -248,12 +239,6 @@ class Game:
         self.all_paddles = pg.sprite.Group()
         self.all_buttons = pg.sprite.Group()
         self.all_dice = pg.sprite.Group()
-        # num_images = gen_num_images()
-        # ltr_imgs = gen_ltr_images()
-
-        # for idx, p in enumerate(self.paddle_list):
-        #     p.letter_image = ltr_imgs[idx]
-        #     p.num_image = num_images[idx]
 
         self.all_paddles.add(
             self.paddle1,
@@ -289,6 +274,20 @@ class Game:
             self.handle_events()
             self.run_logic()
             self.draw()
+        # TODO: Implememt Game states: game over - lose & Game over Win
+        # while game_running:
+        #     if STATE == STATE_MENU:
+        #         Menu_ProcessInput()
+        #         Menu_Update()
+        #         Menu_Draw()
+        #     elif STATE == STATE_INGAME:
+        #         INGAME_ProcessInput()
+        #         INGAME_Update()
+        #         INGAME_Draw()
+        #     elif STATE == STATE_GAMEOVER:
+        #         GAMEOVER_ProcessInput()
+        #         GAMEOVER_Update()
+        #         GAMEOVER_Draw()
 
     def run_logic(self):
         self.all_paddles.update(self.dt)
@@ -346,46 +345,18 @@ class Game:
             moves.append(d1)
             moves.append(d2)
 
-        # if d1 == d2:
-        #     moves = [d1]
-        # elif d1 + d2 < 10:
-        #     moves = [d1, d2, d1 + d2]
-        # else:
-        #     moves = [d1, d2]
-        # if d1 + d2 < 10:
-        #     moves.append(d1 + d2)
-        print(f"Pre Moves: {moves}")
         for m in moves:
             if not self.paddle_list[m - 1].state:
                 moves.remove(m)
         for m in moves:
             if not self.paddle_list[m - 1].state:
                 moves.remove(m)
-        print(f"Post Moves : {moves}")
         return moves
 
 
 def text_objects(text, font):
     textSurface = font.render(text, True, black)
     return textSurface, textSurface.get_rect()
-
-
-def button(msg, x, y, w, h, ic, ac, gameDisplay, action=None, act_args=None):
-    mouse = pg.mouse.get_pos()
-    click = pg.mouse.get_pressed()
-    # print(click)
-    if x + w > mouse[0] > x and y + h > mouse[1] > y:
-        pg.draw.rect(gameDisplay, ac, (x, y, w, h))
-        # print(f"Click 0: {click[0]}")
-        if click[0] == 1 and action is not None:
-            action(act_args)
-    else:
-        pg.draw.rect(gameDisplay, ic, (x, y, w, h))
-
-    smallText = pg.font.Font(None, 20)
-    textSurf, textRect = text_objects(msg, smallText)
-    textRect.center = ((x + (w / 2)), (y + (h / 2)))
-    gameDisplay.blit(textSurf, textRect)
 
 
 if __name__ == "__main__":
