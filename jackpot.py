@@ -1,6 +1,7 @@
 from random import randint
 import pygame as pg
 
+
 pg.init()
 black = (0, 0, 0)
 white = (255, 255, 255)
@@ -27,10 +28,13 @@ pg.display.set_caption("JackPot")
 
 
 def get_dice_images():
+    # die_blank = pg.Surface((60, 60))
+    # die_blank.fill(pg.Color('black'))
     dice_dict = {}
     numbers = ["1", "2", "3", "4", "5", "6"]
     for n in numbers:
         dice_dict[n] = pg.image.load(f"images/die{n}.png")
+    # dice_dict["0"] = die_blank
     return dice_dict
 
 
@@ -59,8 +63,10 @@ class Die(pg.sprite.Sprite):
 
         self.number = str(number)
         self.die_images = get_dice_images()
-        self.image = self.die_images[self.number]
+        self.image = pg.Surface((60, 60))
         self.rect = self.image.get_rect(topleft=(x, y))
+        # self.image.fill(pg.Color('black'))
+        self.pos = (x, y)
 
     # def roll(self);
     #     pass
@@ -189,6 +195,7 @@ class Paddle(pg.sprite.Sprite):
         self.rect = self.image.get_rect(topleft=(x, y))
         # True means the number is showing
         self.state = True
+        self.poss_moves = []
 
     def flip(self):
         if self.state:
@@ -201,7 +208,13 @@ class Paddle(pg.sprite.Sprite):
     def handle_event(self, event):
         if event.type == pg.MOUSEBUTTONDOWN:
             if self.rect.collidepoint(event.pos):
-                self.flip()
+                if self.number in self.poss_moves:
+                    self.flip()
+                else:
+                    self.ill_move()
+
+    def ill_move(self):
+        pass
 
 
 class Game:
@@ -253,8 +266,8 @@ class Game:
             self.paddle8,
             self.paddle9,
         )
-        self.die1 = Die(x=175, number=2)
-        self.die2 = Die(x=50, number=4)
+        self.die1 = Die(x=175, number=0)
+        self.die2 = Die(x=50, number=0)
 
         self.roll_button = ControlButton(
             x=85, colors=green_colors, callback=self.roll_dice, text="Roll"
@@ -269,14 +282,6 @@ class Game:
 
         self.all_buttons.add(self.roll_button, self.quit_button, self.reset_button)
         self.all_dice.add(self.die1, self.die2)
-
-    def get_legal_moves(self, roll):
-        moves = poss_moves(roll)
-        legal_moves = []
-        for m in moves:
-            if self.paddle_list[m - 1].state:
-                legal_moves.append(m)
-        return legal_moves
 
     def run(self):
         while not self.done:
@@ -317,18 +322,47 @@ class Game:
         self.die1.image = self.die1.die_images[str(d1)]
         self.die2.image = self.die2.die_images[str(d2)]
 
+        for p in self.paddle_list:
+            p.poss_moves = self.poss_moves(d1, d2)
+        for p in self.paddle_list:
+            print(f"Paddle {p.number}: state : {p.state}")
+        # print(f"Possible Moves: {self.poss_moves(d1, d2)}")
+        print(f"D1: {d1}")
+        print(f"D2: {d2}\n")
+
     def reset_game(self):
         for p in self.paddle_list:
             p.state = True
             p.image = p.num_image
 
+    def poss_moves(self, d1, d2):
+        """This function takes a tuple dice roll and returns a list of possible paddles that can be flipped"""
+        moves = []
+        if d1 + d2 < 10:
+            moves = [d1 + d2]
+        if d1 == d2:
+            moves.append(d1)
+        else:
+            moves.append(d1)
+            moves.append(d2)
 
-def poss_moves(roll):
-    """This function takes a tuple dice roll and returns a list of possible paddles that can be flipped"""
-    if roll[0] + roll[1] > 9:
-        return [roll[0], roll[1]]
-    else:
-        return [roll[0], roll[1], roll[0] + roll[1]]
+        # if d1 == d2:
+        #     moves = [d1]
+        # elif d1 + d2 < 10:
+        #     moves = [d1, d2, d1 + d2]
+        # else:
+        #     moves = [d1, d2]
+        # if d1 + d2 < 10:
+        #     moves.append(d1 + d2)
+        print(f"Pre Moves: {moves}")
+        for m in moves:
+            if not self.paddle_list[m - 1].state:
+                moves.remove(m)
+        for m in moves:
+            if not self.paddle_list[m - 1].state:
+                moves.remove(m)
+        print(f"Post Moves : {moves}")
+        return moves
 
 
 def text_objects(text, font):
