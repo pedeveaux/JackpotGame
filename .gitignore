@@ -4,4 +4,6 @@ venv
 .env
 __pycache__
 .pytest_cache
+docs/build/html/_static
+docs/source/_build/html/_static
 

@@ -30,6 +30,12 @@ pg.display.set_caption("JackPot")
 def get_dice_images():
     # die_blank = pg.Surface((60, 60))
     # die_blank.fill(pg.Color('black'))
+    """
+    Loads die images from disk
+
+    Returns:
+        dict: containing the number as a string as the key with the png image as the value.
+    """
     dice_dict = {}
     numbers = ["1", "2", "3", "4", "5", "6"]
     for n in numbers:
@@ -54,24 +60,28 @@ def gen_ltr_images():
 
 
 class Die(pg.sprite.Sprite):
-    def __init__(self, x, number, y=350, height=60, width=60):
+    """
+    Class representing a six sided die.
+    """
+    def __init__(self, x, y=350, dim=60):
         super().__init__()
-
-        self.number = str(number)
+        """
+        Args:
+            x (int): initial x position of the die on the screen
+            number (int)
+            y (int): inital y position of the die
+            dim (int): height and width of the die in pixels
+        """
         self.die_images = get_dice_images()
-        self.image = pg.Surface((60, 60))
+        self.image = pg.Surface((dim, dim))
         self.rect = self.image.get_rect(topleft=(x, y))
-        # self.image.fill(pg.Color('black'))
         self.pos = (x, y)
-
-    # def roll(self);
-    #     pass
-
-    # def handle_event(self, event):
-    #     pass
 
 
 class Button(pg.sprite.Sprite):
+    """
+    Represents a game button that can be pressed. Extends the sprite class from PyGame.
+    """
     def __init__(
         self,
         x,
@@ -166,6 +176,10 @@ class ControlButton(Button):
 
 
 class Paddle(pg.sprite.Sprite):
+    """
+    Class representing a paddle in the game that is flipped based on the roll of the dice.
+    Extends the sprite class from PyGame
+    """
     def __init__(
         self, x, number, y=55, font=FONT, height=100, width=50,
     ):
@@ -194,6 +208,9 @@ class Paddle(pg.sprite.Sprite):
         self.poss_moves = []
 
     def flip(self):
+        """
+        Displays the opposite image currently displayed on the paddle.
+        """
         if self.state:
             self.image = self.ltr_image
             self.state = False
@@ -251,8 +268,8 @@ class Game:
             self.paddle8,
             self.paddle9,
         )
-        self.die1 = Die(x=175, number=0)
-        self.die2 = Die(x=50, number=0)
+        self.die1 = Die(x=175)
+        self.die2 = Die(x=50)
 
         self.roll_button = ControlButton(
             x=85, colors=green_colors, callback=self.roll_dice, text="Roll"
@@ -313,8 +330,8 @@ class Game:
         self.done = True
 
     def roll_dice(self):
-        """This function simulates rolling two six sided dice
-        It returns a tuple of two ints """
+        """This method simulates rolling two six sided die.
+        """
 
         d1 = randint(1, 6)
         d2 = randint(1, 6)
@@ -323,11 +340,11 @@ class Game:
 
         for p in self.paddle_list:
             p.poss_moves = self.poss_moves(d1, d2)
-        for p in self.paddle_list:
-            print(f"Paddle {p.number}: state : {p.state}")
+        # for p in self.paddle_list:
+            # print(f"Paddle {p.number}: state : {p.state}")
         # print(f"Possible Moves: {self.poss_moves(d1, d2)}")
-        print(f"D1: {d1}")
-        print(f"D2: {d2}\n")
+        # print(f"D1: {d1}")
+        # print(f"D2: {d2}\n")
 
     def reset_game(self):
         for p in self.paddle_list:
@@ -335,7 +352,15 @@ class Game:
             p.image = p.num_image
 
     def poss_moves(self, d1, d2):
-        """This function takes a tuple dice roll and returns a list of possible paddles that can be flipped"""
+        """
+        Generates possible moves based on the dice and paddles that have been previously flipped.
+
+        Args:
+            d1 (int): number from die 1
+            d2 (int): number from die 2
+        Returns:
+            list: paddles that can be flipped on the current move
+        """
         moves = []
         if d1 + d2 < 10:
             moves = [d1 + d2]
