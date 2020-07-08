@@ -27,6 +27,10 @@ screen = pg.display.set_mode([1048, 650])
 pg.display.set_caption("JackPot")
 
 
+def clear_callback(surf, rect):
+    surf.fill(black, rect)
+
+
 def get_dice_images():
     # die_blank = pg.Surface((60, 60))
     # die_blank.fill(pg.Color('black'))
@@ -68,7 +72,6 @@ class Die(pg.sprite.Sprite):
         """
         Args:
             x (int): initial x position of the die on the screen
-            number (int)
             y (int): inital y position of the die
             dim (int): height and width of the die in pixels
         """
@@ -350,6 +353,10 @@ class Game:
         for p in self.paddle_list:
             p.state = True
             p.image = p.num_image
+        # bgd_clear = pg.Surface((60, 60))
+        self.all_dice.clear(self.screen, clear_callback)
+        self.all_dice.update()
+        self.draw()
 
     def poss_moves(self, d1, d2):
         """
