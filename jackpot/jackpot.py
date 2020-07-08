@@ -76,7 +76,7 @@ class Die(pg.sprite.Sprite):
             dim (int): height and width of the die in pixels
         """
         self.die_images = get_dice_images()
-        self.image = pg.Surface((dim, dim))
+        self.image = pg.Surface([dim, dim])
         self.rect = self.image.get_rect(topleft=(x, y))
         self.pos = (x, y)
 
@@ -117,6 +117,7 @@ class Button(pg.sprite.Sprite):
         self.button_down = False
         self.callback = callback
 
+    # TODO: Disable ability to roll the dice until the paddle has been flipped.
     def handle_event(self, event):
         if event.type == pg.MOUSEBUTTONDOWN:
             if self.rect.collidepoint(event.pos):
@@ -355,7 +356,12 @@ class Game:
             p.image = p.num_image
         # bgd_clear = pg.Surface((60, 60))
         self.all_dice.clear(self.screen, clear_callback)
-        self.all_dice.update()
+        # self.all_dice.draw(self.screen)
+        # TODO: Find a way to make the dice disappear
+        # self.die1.kill()
+        # self.die2.kill()
+        # self.all_dice.add(self.die1, self.die2)
+
         self.draw()
 
     def poss_moves(self, d1, d2):
