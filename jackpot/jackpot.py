@@ -32,8 +32,8 @@ def clear_callback(surf, rect):
 
 
 def get_dice_images():
-    # die_blank = pg.Surface((60, 60))
-    # die_blank.fill(pg.Color('black'))
+    die_blank = pg.Surface((100, 100))
+    die_blank.fill(pg.Color('black'))
     """
     Loads die images from disk
 
@@ -44,7 +44,7 @@ def get_dice_images():
     numbers = ["1", "2", "3", "4", "5", "6"]
     for n in numbers:
         dice_dict[n] = pg.image.load(f"images/die{n}.png")
-    # dice_dict["0"] = die_blank
+    dice_dict["0"] = die_blank
     return dice_dict
 
 
@@ -67,7 +67,8 @@ class Die(pg.sprite.Sprite):
     """
     Class representing a six sided die.
     """
-    def __init__(self, x, y=350, dim=60):
+
+    def __init__(self, x, y=350, dim=100):
         super().__init__()
         """
         Args:
@@ -79,12 +80,14 @@ class Die(pg.sprite.Sprite):
         self.image = pg.Surface([dim, dim])
         self.rect = self.image.get_rect(topleft=(x, y))
         self.pos = (x, y)
+        self.visible = True
 
 
 class Button(pg.sprite.Sprite):
     """
     Represents a game button that can be pressed. Extends the sprite class from PyGame.
     """
+
     def __init__(
         self,
         x,
@@ -184,6 +187,7 @@ class Paddle(pg.sprite.Sprite):
     Class representing a paddle in the game that is flipped based on the roll of the dice.
     Extends the sprite class from PyGame
     """
+
     def __init__(
         self, x, number, y=55, font=FONT, height=100, width=50,
     ):
@@ -208,19 +212,19 @@ class Paddle(pg.sprite.Sprite):
         self.image = self.num_image
         self.rect = self.image.get_rect(topleft=(x, y))
         # True means the number is showing
-        self.state = True
+        self.number_showing = True
         self.poss_moves = []
 
     def flip(self):
         """
         Displays the opposite image currently displayed on the paddle.
         """
-        if self.state:
+        if self.number_showing:
             self.image = self.ltr_image
-            self.state = False
+            self.number_showing = False
         else:
             self.image = self.num_image
-            self.state = True
+            self.number_showing = True
 
     def handle_event(self, event):
         if event.type == pg.MOUSEBUTTONDOWN:
@@ -345,23 +349,18 @@ class Game:
         for p in self.paddle_list:
             p.poss_moves = self.poss_moves(d1, d2)
         # for p in self.paddle_list:
-            # print(f"Paddle {p.number}: state : {p.state}")
+        # print(f"Paddle {p.number}: state : {p.state}")
         # print(f"Possible Moves: {self.poss_moves(d1, d2)}")
         # print(f"D1: {d1}")
         # print(f"D2: {d2}\n")
 
     def reset_game(self):
         for p in self.paddle_list:
-            p.state = True
+            p.number_showing = True
             p.image = p.num_image
-        # bgd_clear = pg.Surface((60, 60))
-        self.all_dice.clear(self.screen, clear_callback)
-        # self.all_dice.draw(self.screen)
-        # TODO: Find a way to make the dice disappear
-        # self.die1.kill()
-        # self.die2.kill()
-        # self.all_dice.add(self.die1, self.die2)
-
+        # Clear dice
+        self.die1.image = self.die1.die_images["0"]
+        self.die2.image = self.die2.die_images["0"]
         self.draw()
 
     def poss_moves(self, d1, d2):
@@ -384,10 +383,10 @@ class Game:
             moves.append(d2)
 
         for m in moves:
-            if not self.paddle_list[m - 1].state:
+            if not self.paddle_list[m - 1].number_showing:
                 moves.remove(m)
         for m in moves:
-            if not self.paddle_list[m - 1].state:
+            if not self.paddle_list[m - 1].number_showing:
                 moves.remove(m)
         return moves
 
