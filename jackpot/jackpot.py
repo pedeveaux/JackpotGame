@@ -1,4 +1,5 @@
 from random import randint
+from loguru import logger
 import pygame as pg
 
 
@@ -241,6 +242,7 @@ class Game:
         self.screen = screen
         self.done = False
         self.won = False
+        self.flipped_paddle = False
         self.paddle1 = Paddle(x=first_x, number=1)
         self.paddle2 = Paddle(x=first_x + 5 * offset, number=2)
         self.paddle3 = Paddle(x=first_x + 10 * offset, number=3)
@@ -348,11 +350,6 @@ class Game:
 
         for p in self.paddle_list:
             p.poss_moves = self.poss_moves(d1, d2)
-        # for p in self.paddle_list:
-        # print(f"Paddle {p.number}: state : {p.state}")
-        # print(f"Possible Moves: {self.poss_moves(d1, d2)}")
-        # print(f"D1: {d1}")
-        # print(f"D2: {d2}\n")
 
     def reset_game(self):
         for p in self.paddle_list:
